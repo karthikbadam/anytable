@@ -19,9 +19,6 @@
     "url": "https://github.com/karthikbadam/any_table.git",
     "directory": "packages/core"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"
