@@ -1,7 +1,7 @@
 // @anytable/core
 
 // Types & type utilities
-export * from './types/index.js';
+export * from './types/index';
 
 // Unit resolution
-export { resolveWidth, resolveRowHeight } from './units.js';
+export { resolveWidth, resolveRowHeight } from './units';

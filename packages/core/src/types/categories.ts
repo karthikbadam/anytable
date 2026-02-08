@@ -1,4 +1,4 @@
-import type { TypeCategory } from './interfaces.js';
+import type { TypeCategory } from './interfaces';
 
 export function categorizeType(sqlType: string): TypeCategory {
   const t = sqlType.toUpperCase();

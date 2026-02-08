@@ -1,4 +1,4 @@
-import type { ColumnSchema, CastDescriptor } from './interfaces.js';
+import type { ColumnSchema, CastDescriptor } from './interfaces';
 
 export function getCastDescriptor(schema: ColumnSchema): CastDescriptor {
   const t = schema.sqlType.toUpperCase();

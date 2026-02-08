@@ -1,4 +1,4 @@
-import type { ColumnSchema, BigIntValue } from './interfaces.js';
+import type { ColumnSchema, BigIntValue } from './interfaces';
 
 export function parseValue(
   raw: any,

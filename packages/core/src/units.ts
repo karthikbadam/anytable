@@ -1,4 +1,4 @@
-import type { ColumnWidth, RowHeightConfig } from './types/interfaces.js';
+import type { ColumnWidth, RowHeightConfig } from './types/interfaces';
 
 export function resolveWidth(
   value: ColumnWidth,
