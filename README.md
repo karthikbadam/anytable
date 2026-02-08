@@ -126,6 +126,8 @@ To bump versions before publishing:
 
 ```bash
 pnpm -r exec -- npm version patch   # or minor / major
+# git push changes
+
 pnpm build
 pnpm -r publish --access public
 ```
