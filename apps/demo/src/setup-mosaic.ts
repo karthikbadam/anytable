@@ -44,5 +44,5 @@ export async function setupMosaic(): Promise<CoordinatorLike> {
   });
 
   setGlobalCoordinator(coord);
-  return coord as unknown as CoordinatorLike;
+  return coord;
 }

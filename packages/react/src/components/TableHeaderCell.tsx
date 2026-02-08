@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLayoutContext } from '../context/LayoutContext';
 import { useInteractionContext } from '../context/InteractionContext';
-import type { SortField } from '@anytable/core';
+import type { Sort, SortField } from '@anytable/core';
 
 export interface TableHeaderCellProps {
   column: string;
@@ -10,7 +10,7 @@ export interface TableHeaderCellProps {
   style?: React.CSSProperties;
 }
 
-function getSortDirection(sort: any, column: string): 'ascending' | 'descending' | 'none' {
+function getSortDirection(sort: Sort | null, column: string): 'ascending' | 'descending' | 'none' {
   if (!sort) return 'none';
   const fields: SortField[] = Array.isArray(sort) ? sort : [sort];
   const field = fields.find((f) => f.column === column);

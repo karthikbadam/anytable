@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   SparseDataModel,
   fetchSchema,
@@ -26,8 +26,12 @@ export interface UseTableDataOptions {
 }
 
 export function useTableData(options: UseTableDataOptions): TableData {
-  const { table, rows: arrayRows, columns, rowKey, filter } = options;
+  const { table, rows: arrayRows, rowKey, filter } = options;
   const coordinator = useMosaicCoordinator();
+
+  // Stabilize columns array — only recompute when the actual column names change
+  const columnsKey = options.columns.join(',');
+  const columns = useMemo(() => options.columns, [columnsKey]);
 
   const [version, setVersion] = useState(0);
   const [schema, setSchema] = useState<ColumnSchema[]>([]);
@@ -37,7 +41,6 @@ export function useTableData(options: UseTableDataOptions): TableData {
   const modelRef = useRef(new SparseDataModel());
   const rowsClientRef = useRef<RowsClientInstance | null>(null);
   const countClientRef = useRef<CountClientInstance | null>(null);
-  // Guard: setWindow is a no-op until clients are connected to the coordinator
   const connectedRef = useRef(false);
 
   // ── Array mode ──
@@ -129,8 +132,9 @@ export function useTableData(options: UseTableDataOptions): TableData {
         );
         rowsClientRef.current = rowsClient;
 
-        await coordinator.connect(countClient);
-        await coordinator.connect(rowsClient);
+        // coordinator is guaranteed non-null — checked at the top of the effect
+        await coordinator!.connect(countClient);
+        await coordinator!.connect(rowsClient);
 
         if (!cancelled) {
           connectedRef.current = true;
@@ -203,19 +207,24 @@ export function useTableData(options: UseTableDataOptions): TableData {
     const client = rowsClientRef.current;
     if (client && connectedRef.current) {
       client.fetchWindow(offset, limit);
+      client.requestUpdate();
     }
   }, []);
 
+  // Stable getRow/hasRow that read from the ref — identity doesn't change
   const model = modelRef.current;
+  const getRow = useCallback((index: number) => model.getRow(index), [model]);
+  const hasRow = useCallback((index: number) => model.hasRow(index), [model]);
 
-  return {
-    getRow: (index: number) => model.getRow(index),
-    hasRow: (index: number) => model.hasRow(index),
+  // Stabilize the returned data object — only changes when data actually changes
+  return useMemo<TableData>(() => ({
+    getRow,
+    hasRow,
     totalRows: model.totalRows,
     schema,
     isLoading,
     setWindow,
     sort,
     setSort,
-  };
+  }), [getRow, hasRow, version, schema, isLoading, setWindow, sort, setSort]);
 }

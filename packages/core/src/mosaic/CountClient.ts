@@ -3,7 +3,6 @@ import type {
   QueryStatic,
   QueryResult,
   SelectionLike,
-  SqlExpr,
   CountClientInstance,
 } from '../types/mosaic';
 
@@ -15,7 +14,7 @@ export interface CountClientConfig {
 export function createCountClient(
   MosaicClient: ClientConstructor,
   Query: QueryStatic,
-  countFn: () => SqlExpr,
+  countFn: () => unknown,
   config: CountClientConfig,
   filterSelection?: SelectionLike,
 ): CountClientInstance {

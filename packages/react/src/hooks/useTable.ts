@@ -1,4 +1,4 @@
-import { type RefObject } from 'react';
+import { type RefObject, useMemo } from 'react';
 import type { ColumnDef, Sort, RowHeightConfig, RowRecord, SelectionLike } from '@anytable/core';
 import { useTableData } from './useTableData';
 import { useTableLayout } from './useTableLayout';
@@ -83,11 +83,14 @@ export function useTable(options: UseTableOptions): UseTableReturn {
     onSortChange,
   } = options;
 
+  // Stabilize column keys — avoids new array identity on every render
+  const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
+
   // Tier 2: Data
   const data = useTableData({
     table,
     rows,
-    columns: columns.map((c) => c.key),
+    columns: columnKeys,
     rowKey,
     filter,
   });

@@ -3,7 +3,6 @@ import type {
   ClientConstructor,
   QueryResult,
   SelectionLike,
-  SqlExpr,
   MosaicSqlApi,
   RowsClientInstance,
   RowRecord,
@@ -50,7 +49,7 @@ export function createRowsClient(
   });
 
   client.query = (filter?: unknown[]) => {
-    const select: Record<string, SqlExpr> = {};
+    const select: Record<string, unknown> = {};
 
     for (const col of config.columns) {
       const descriptor = getCastDescriptor(col);
@@ -63,7 +62,7 @@ export function createRowsClient(
 
     // Stable positional ID via window function
     const sortFields = normalizeSortFields(currentSort);
-    let rn: SqlExpr = row_number();
+    let rn: unknown = row_number();
     if (sortFields && sortFields.length > 0) {
       const orderExprs = sortFields.map((sf) =>
         sf.desc ? desc(column(sf.column)) : column(sf.column),
@@ -108,7 +107,8 @@ export function createRowsClient(
   client.fetchWindow = (offset: number, limit: number) => {
     currentOffset = offset;
     currentLimit = limit;
-    client.requestUpdate();
+    // Does NOT call requestUpdate — the React layer owns that decision,
+    // guarded by connection state. This keeps the client a pure data object.
   };
 
   return client;

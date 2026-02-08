@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface TextCellProps {
-  value: any;
+  value: unknown;
   className?: string;
   style?: React.CSSProperties;
 }

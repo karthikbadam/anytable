@@ -19,6 +19,11 @@ export interface UseTableScrollOptions {
 export function useTableScroll(options: UseTableScrollOptions): TableScroll {
   const { data, layout, overscan = 5, containerRef } = options;
 
+  // Destructure primitives and stable callbacks — NOT the data object itself.
+  // This prevents re-creating callbacks when data's object identity changes.
+  const { totalRows, setWindow } = data;
+  const { rowHeight, totalWidth } = layout;
+
   const scrollTopRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
@@ -28,9 +33,6 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
   const [visibleRowRange, setVisibleRowRange] = useState({ start: 0, end: 0 });
   const [scrollTop, setScrollTop] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-
-  const { rowHeight, totalWidth } = layout;
-  const { totalRows } = data;
 
   const totalHeight = getTotalHeight(totalRows, rowHeight);
 
@@ -42,7 +44,8 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
     return containerRef.current?.clientWidth ?? 0;
   }, [containerRef]);
 
-  // Core scroll update — runs in rAF
+  // Core scroll update — runs in rAF.
+  // Dependencies are all primitives or stable callbacks — no object refs.
   const updateScroll = useCallback(() => {
     rafIdRef.current = null;
 
@@ -70,12 +73,11 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
     const newWindow = computeFetchWindow(state, fetchWindowRef.current, overscan);
     if (newWindow) {
       fetchWindowRef.current = newWindow;
-      data.setWindow(newWindow.offset, newWindow.limit);
+      setWindow(newWindow.offset, newWindow.limit);
     }
-  }, [rowHeight, totalRows, overscan, data, getViewportHeight, getViewportWidth]);
+  }, [rowHeight, totalRows, overscan, setWindow, getViewportHeight, getViewportWidth]);
 
   // Ref that always points to the latest wheel handler closure.
-  // Updated on every render so it captures current totalHeight, totalWidth, etc.
   const handleWheelRef = useRef<(e: WheelEvent) => void>(() => {});
   handleWheelRef.current = (e: WheelEvent) => {
     e.preventDefault();

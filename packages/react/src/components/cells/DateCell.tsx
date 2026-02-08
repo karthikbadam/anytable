@@ -7,7 +7,7 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 });
 
 export interface DateCellProps {
-  value: any;
+  value: unknown;
   className?: string;
   style?: React.CSSProperties;
 }

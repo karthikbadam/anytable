@@ -3,6 +3,10 @@
  * and @uwdata/mosaic-sql API surfaces that anytable uses. Defined here so the
  * core package has zero hard dependencies on Mosaic at the type level (Mosaic
  * packages are optional peer deps).
+ *
+ * SQL expression types use `unknown` deliberately — we compose these opaque
+ * values but never inspect them. Type safety comes from Mosaic's own types
+ * at the dynamic import boundary.
  */
 
 // ── Row data ────────────────────────────────────────────────────
@@ -12,9 +16,14 @@ export type RowRecord = Record<string, unknown>;
 
 // ── Coordinator & Client ────────────────────────────────────────
 
-/** Minimal interface for Mosaic's Coordinator. */
+/**
+ * Minimal interface for Mosaic's Coordinator. Uses method syntax so
+ * TypeScript applies bivariant parameter checking — this lets Mosaic's
+ * Coordinator (which takes MosaicClient) satisfy this interface without
+ * casts, since MosaicClient structurally overlaps with ClientLike.
+ */
 export interface CoordinatorLike {
-  connect(client: ClientLike): Promise<void>;
+  connect(client: ClientLike): Promise<unknown>;
   disconnect(client: ClientLike): void;
 }
 
@@ -50,21 +59,22 @@ export type QueryFieldInfoFn = (
 // ── SQL expressions & query builder ─────────────────────────────
 
 /**
- * Opaque SQL expression from mosaic-sql. We compose these but never
- * inspect their internals.
+ * Opaque SQL expression from mosaic-sql. We only compose these and pass
+ * them to query builders — never inspect their internals.
  */
-export type SqlExpr = object;
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+export type SqlExpr = unknown;
 
 /** A window function expression that supports .orderby(). */
 export interface WindowFnExpr {
-  orderby(...exprs: SqlExpr[]): SqlExpr;
+  orderby(...exprs: unknown[]): unknown;
 }
 
 /** Query builder chain matching the mosaic-sql Query API surface we use. */
 export interface QueryBuilder {
-  select(selections: Record<string, SqlExpr>): QueryBuilder;
-  where(filter?: unknown): QueryBuilder;
-  orderby(...exprs: SqlExpr[]): QueryBuilder;
+  select(...args: unknown[]): QueryBuilder;
+  where(...args: unknown[]): QueryBuilder;
+  orderby(...exprs: unknown[]): QueryBuilder;
   limit(n: number): QueryBuilder;
   offset(n: number): QueryBuilder;
 }
@@ -100,8 +110,8 @@ export interface RowsClientInstance extends ClientLike {
 /** SQL functions from @uwdata/mosaic-sql that createRowsClient needs. */
 export interface MosaicSqlApi {
   Query: QueryStatic;
-  column: (name: string) => SqlExpr;
-  cast: (expr: SqlExpr, type: string) => SqlExpr;
-  row_number: () => WindowFnExpr;
-  desc: (expr: SqlExpr) => SqlExpr;
+  column(name: string): unknown;
+  cast(expr: unknown, type: string): unknown;
+  row_number(): WindowFnExpr;
+  desc(expr: unknown): unknown;
 }
