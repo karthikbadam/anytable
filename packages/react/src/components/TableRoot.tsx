@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ColumnDef } from '@anytable/core';
+import type { ColumnDef } from '@any_table/core';
 import { DataContext, type TableData } from '../context/DataContext';
 import { LayoutContext, type ColumnLayout } from '../context/LayoutContext';
 import { ScrollContext, type TableScroll } from '../context/ScrollContext';

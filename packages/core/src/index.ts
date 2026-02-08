@@ -1,4 +1,4 @@
-// @anytable/core
+// @any_table/core
 
 // Types & type utilities
 export * from './types/index';

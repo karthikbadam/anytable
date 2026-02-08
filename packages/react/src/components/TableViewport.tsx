@@ -2,7 +2,7 @@ import React from 'react';
 import { useDataContext } from '../context/DataContext';
 import { useLayoutContext } from '../context/LayoutContext';
 import { useScrollContext } from '../context/ScrollContext';
-import type { RowRecord } from '@anytable/core';
+import type { RowRecord } from '@any_table/core';
 
 export interface VisibleRow {
   key: string | number;

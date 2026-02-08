@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { ResolvedColumn } from '@anytable/core';
+import type { ResolvedColumn } from '@any_table/core';
 
 export interface ColumnLayout {
   resolved: ResolvedColumn[];

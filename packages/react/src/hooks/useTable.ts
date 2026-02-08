@@ -1,6 +1,6 @@
 import { type RefObject, useMemo } from 'react';
 import type { Selection } from '@uwdata/mosaic-core';
-import type { ColumnDef, Sort, RowHeightConfig, RowRecord } from '@anytable/core';
+import type { ColumnDef, Sort, RowHeightConfig, RowRecord } from '@any_table/core';
 import { useTableData } from './useTableData';
 import { useTableLayout } from './useTableLayout';
 import { useTableScroll } from './useTableScroll';

@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useScrollContext } from '../context/ScrollContext';
 import { useDataContext } from '../context/DataContext';
 import { useLayoutContext } from '../context/LayoutContext';
-import { getTotalHeight } from '@anytable/core';
+import { getTotalHeight } from '@any_table/core';
 
 export interface VerticalScrollbarProps {
   className?: string;

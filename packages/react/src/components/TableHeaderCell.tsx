@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLayoutContext } from '../context/LayoutContext';
 import { useInteractionContext } from '../context/InteractionContext';
-import type { Sort, SortField } from '@anytable/core';
+import type { Sort, SortField } from '@any_table/core';
 
 export interface TableHeaderCellProps {
   column: string;

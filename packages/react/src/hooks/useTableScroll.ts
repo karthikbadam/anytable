@@ -4,7 +4,7 @@ import {
   computeFetchWindow,
   getTotalHeight,
   type FetchWindow,
-} from '@anytable/core';
+} from '@any_table/core';
 import type { TableData } from '../context/DataContext';
 import type { ColumnLayout } from '../context/LayoutContext';
 import type { TableScroll } from '../context/ScrollContext';

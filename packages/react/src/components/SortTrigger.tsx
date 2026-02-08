@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useInteractionContext } from '../context/InteractionContext';
-import type { SortField, Sort } from '@anytable/core';
+import type { SortField, Sort } from '@any_table/core';
 
 export interface SortTriggerProps {
   column: string;

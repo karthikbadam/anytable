@@ -31,7 +31,7 @@ export async function setupMosaic(): Promise<Coordinator> {
     "SELECT count(*) as cnt FROM open_rubrics",
   );
   const count = countResult.toArray()[0].cnt;
-  console.log(`[anytable] Loaded ${count} rows from open_rubrics.parquet`);
+  console.log(`[any_table] Loaded ${count} rows from open_rubrics.parquet`);
 
   // 3. Create a Mosaic-compatible connector
   const connector = {

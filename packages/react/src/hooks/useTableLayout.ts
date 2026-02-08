@@ -1,5 +1,5 @@
 import { useMemo, type RefObject } from 'react';
-import { computeLayout, type ColumnDef, type RowHeightConfig } from '@anytable/core';
+import { computeLayout, type ColumnDef, type RowHeightConfig } from '@any_table/core';
 import { useContainerWidth } from './useContainerWidth';
 import type { ColumnLayout } from '../context/LayoutContext';
 

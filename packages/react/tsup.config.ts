@@ -9,7 +9,7 @@ export default defineConfig({
   external: [
     'react',
     'react-dom',
-    '@anytable/core',
+    '@any_table/core',
     '@uwdata/mosaic-core',
     '@uwdata/mosaic-sql',
   ],

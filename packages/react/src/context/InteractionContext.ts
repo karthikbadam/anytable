@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { Sort } from '@anytable/core';
+import type { Sort } from '@any_table/core';
 
 export interface InteractionContextValue {
   sort: Sort | null;

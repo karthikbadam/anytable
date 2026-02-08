@@ -1,4 +1,4 @@
-# Anytable
+# AnyTable
 
 A headless, virtualized React table for large datasets.
 
@@ -16,12 +16,12 @@ A headless, virtualized React table for large datasets.
 
 ## Packages
 
-- `@anytable/core` — Framework-agnostic TypeScript: type system, layout algorithm, scroll math, sparse data model, Mosaic clients
-- `@anytable/react` — React hooks and compound components
+- `@any_table/core` — Framework-agnostic TypeScript: type system, layout algorithm, scroll math, sparse data model, Mosaic clients
+- `@any_table/react` — React hooks and compound components
 
 ## Try the Demo
 
-**[Live demo](https://karthikbadam.github.io/anytable/)** — 11K rows from the Open Rubrics dataset, loaded into DuckDB-WASM and rendered with Anytable. Click column headers to sort.
+**[Live demo](https://karthikbadam.github.io/anytable/)** — 11K rows from the Open Rubrics dataset, loaded into DuckDB-WASM and rendered with AnyTable. Click column headers to sort.
 
 Or run it locally:
 
@@ -34,7 +34,7 @@ pnpm dev
 ## Quick Start
 
 ```tsx
-import { useTable, Table, MosaicProvider } from "@anytable/react";
+import { useTable, Table, MosaicProvider } from "@any_table/react";
 
 function MyTable() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,7 +120,7 @@ pnpm build
 pnpm -r publish --access public
 ```
 
-Scoped packages (`@anytable/*`) require `--access public` to be published as free public packages. The `@anytable` org must exist on npm first — create it at https://www.npmjs.com/org/create.
+Scoped packages (`@any_table/*`) require `--access public` to be published as free public packages. The `@any_table` org must exist on npm first — create it at https://www.npmjs.com/org/create.
 
 To bump versions before publishing:
 

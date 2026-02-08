@@ -1,4 +1,4 @@
-// @anytable/react
+// @any_table/react
 
 // Re-export core types
 export type {
@@ -11,7 +11,7 @@ export type {
   ResolvedColumn,
   RowHeightConfig,
   RowRecord,
-} from '@anytable/core';
+} from '@any_table/core';
 
 // Re-export Mosaic types for consumer convenience (type-only, no runtime dep)
 export type { Coordinator, Selection } from '@uwdata/mosaic-core';

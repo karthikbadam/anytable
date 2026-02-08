@@ -1,5 +1,5 @@
 {
-  "name": "@anytable/react",
+  "name": "@any_table/react",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -19,7 +19,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@anytable/core": "workspace:*"
+    "@any_table/core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

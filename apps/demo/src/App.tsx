@@ -1,5 +1,5 @@
-import type { ColumnDef, Coordinator, UseTableReturn } from "@anytable/react";
-import { MosaicProvider, Table, useTable } from "@anytable/react";
+import type { ColumnDef, Coordinator, UseTableReturn } from "@any_table/react";
+import { MosaicProvider, Table, useTable } from "@any_table/react";
 import React, { useEffect, useRef, useState } from "react";
 import { setupMosaic } from "./setup-mosaic";
 
@@ -239,7 +239,7 @@ export default function App() {
     return (
       <div style={{ padding: "2rem" }}>
         <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>
-          Anytable demo
+          AnyTable demo
         </h1>
         <p>Loading open_rubrics.parquet into DuckDB-WASM...</p>
       </div>
@@ -250,7 +250,7 @@ export default function App() {
     <MosaicProvider coordinator={coordinatorRef.current}>
       <div style={{ padding: "1rem" }}>
         <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>
-          Anytable • OpenRubric-science dataset
+          AnyTable • OpenRubric-Science Dataset
         </h1>
         <RubricsTable />
       </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLayoutContext } from '../context/LayoutContext';
-import type { ResolvedColumn } from '@anytable/core';
+import type { ResolvedColumn } from '@any_table/core';
 
 export interface TableHeaderProps {
   children: (args: { columns: ResolvedColumn[] }) => React.ReactNode;

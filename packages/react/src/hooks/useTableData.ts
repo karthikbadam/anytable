@@ -10,7 +10,7 @@ import {
   type SortField,
   type RowRecord,
   type RowsClient,
-} from '@anytable/core';
+} from '@any_table/core';
 import { useMosaicCoordinator } from '../context/MosaicContext';
 import type { TableData } from '../context/DataContext';
 
@@ -137,7 +137,7 @@ export function useTableData(options: UseTableDataOptions): TableData {
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('[anytable] Failed to initialize data:', err);
+          console.error('[any_table] Failed to initialize data:', err);
           setIsLoading(false);
         }
       }

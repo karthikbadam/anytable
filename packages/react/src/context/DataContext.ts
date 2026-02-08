@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { ColumnSchema, Sort, RowRecord } from '@anytable/core';
+import type { ColumnSchema, Sort, RowRecord } from '@any_table/core';
 
 export interface TableData {
   getRow(index: number): RowRecord | null;
