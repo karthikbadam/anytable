@@ -2,16 +2,15 @@
 
 A headless, virtualized React table for large datasets.
 
-
 ## Philosophy
+
+**DuckDB-powered, Mosaic-native.** DuckDB-WASM is the query engine — SQL runs in-browser with zero server. The data layer uses [Mosaic](https://uwdata.github.io/mosaic/) natively for seamless coordination between views. 
+
+**React-idiomatic surface, performance-pragmatic internals.** You write normal React. Under the hood, scroll and positioning bypass React's render cycle for 60fps. These optimizations are invisible.
 
 **Composable, not configurable.** No boolean flags. Behaviors are opt-in by using the relevant hook or component.
 
 **Scoped concerns.** Each hook owns one concern. They coordinate through shared identities and narrow context, not a monolithic engine.
-
-**React-idiomatic surface, performance-pragmatic internals.** You write normal React. Under the hood, scroll and positioning bypass React's render cycle for 60fps. These optimizations are invisible.
-
-**Mosaic-native, but not Mosaic-exclusive.** The data layer speaks Mosaic natively. But every hook degrades to plain arrays for prototyping and testing.
 
 **Headless with minimal defaults.** Unstyled compound components with correct ARIA. All visual styling is yours.
 
@@ -20,45 +19,63 @@ A headless, virtualized React table for large datasets.
 - `@anytable/core` — Framework-agnostic TypeScript: type system, layout algorithm, scroll math, sparse data model, Mosaic clients
 - `@anytable/react` — React hooks and compound components
 
+## Try the Demo
+
+**[Live demo](https://karthikbadam.github.io/anytable/)** — 11K rows from the Open Rubrics dataset, loaded into DuckDB-WASM and rendered with Anytable. Click column headers to sort.
+
+Or run it locally:
+
+```bash
+pnpm install
+pnpm build
+pnpm dev
+```
+
 ## Quick Start
 
 ```tsx
-import { useTable, Table, MosaicProvider } from '@anytable/react';
+import { useTable, Table, MosaicProvider } from "@anytable/react";
 
 function MyTable() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const table = useTable({
-    table: 'orders',
+    table: "orders",
     columns: [
-      { key: 'id', width: '5rem' },
-      { key: 'customer', flex: 2 },
-      { key: 'revenue', width: '7.5rem' },
+      { key: "id", width: "5rem" },
+      { key: "customer", flex: 2 },
+      { key: "revenue", width: "7.5rem" },
     ],
-    rowKey: 'id',
+    rowKey: "id",
     containerRef,
   });
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <Table.Root {...table.rootProps}>
         <Table.Header>
           {({ columns }) =>
-            columns.map(col => (
+            columns.map((col) => (
               <Table.HeaderCell key={col.key} column={col.key}>
-                <Table.SortTrigger column={col.key}>{col.key}</Table.SortTrigger>
+                <Table.SortTrigger column={col.key}>
+                  {col.key}
+                </Table.SortTrigger>
               </Table.HeaderCell>
             ))
           }
         </Table.Header>
         <Table.Viewport>
           {({ rows }) =>
-            rows.map(row => (
+            rows.map((row) => (
               <Table.Row key={row.key} row={row}>
                 {({ cells }) =>
-                  cells.map(cell => (
-                    <Table.Cell key={cell.column} column={cell.column}
-                      width={cell.width} offset={cell.offset}>
+                  cells.map((cell) => (
+                    <Table.Cell
+                      key={cell.column}
+                      column={cell.column}
+                      width={cell.width}
+                      offset={cell.offset}
+                    >
                       {cell.value}
                     </Table.Cell>
                   ))
@@ -71,18 +88,6 @@ function MyTable() {
     </div>
   );
 }
-```
-
-## Try the Demo
-
-**[Live demo](https://karthikbadam.github.io/anytable/)** — 11K rows from the Open Rubrics dataset, loaded into DuckDB-WASM and rendered with Anytable. Click column headers to sort.
-
-Or run it locally:
-
-```bash
-pnpm install
-pnpm build
-pnpm dev
 ```
 
 ## Architecture
@@ -98,12 +103,32 @@ Override any piece by spreading `rootProps` and replacing:
 <Table.Root {...table.rootProps} selection={customSelection}>
 ```
 
-## Deploy
+## Deploy Demo
 
 ```bash
 pnpm deploy    # builds packages + demo, pushes to gh-pages branch
 ```
 
+## Publish to npm
+
+```bash
+# 1. Log in (one-time)
+npm login
+
+# 2. Build and publish both packages
+pnpm build
+pnpm -r publish --access public
+```
+
+Scoped packages (`@anytable/*`) require `--access public` to be published as free public packages. The `@anytable` org must exist on npm first — create it at https://www.npmjs.com/org/create.
+
+To bump versions before publishing:
+
+```bash
+pnpm -r exec -- npm version patch   # or minor / major
+pnpm build
+pnpm -r publish --access public
+```
 
 ## License
 
