@@ -1,9 +1,7 @@
 import { useState, useCallback, useRef, useEffect, type RefObject, type CSSProperties } from 'react';
 import {
   computeVisibleRange,
-  computeRenderRange,
   computeFetchWindow,
-  computeRetentionRange,
   getTotalHeight,
   type FetchWindow,
 } from '@anytable/core';
@@ -25,7 +23,7 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
   const scrollLeftRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
   const fetchWindowRef = useRef<FetchWindow | null>(null);
-  const contentRef = useRef<HTMLElement | null>(null);
+  const viewportElRef = useRef<HTMLElement | null>(null);
 
   const [visibleRowRange, setVisibleRowRange] = useState({ start: 0, end: 0 });
   const [scrollTop, setScrollTop] = useState(0);
@@ -36,7 +34,6 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
 
   const totalHeight = getTotalHeight(totalRows, rowHeight);
 
-  // Get viewport dimensions from container
   const getViewportHeight = useCallback(() => {
     return containerRef.current?.clientHeight ?? 0;
   }, [containerRef]);
@@ -61,7 +58,6 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
       totalRows,
     };
 
-    // Compute visible range
     const visible = computeVisibleRange(state);
     setVisibleRowRange((prev) => {
       if (prev.start === visible.start && prev.end === visible.end) return prev;
@@ -71,65 +67,74 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
     setScrollTop(scrollTopRef.current);
     setScrollLeft(scrollLeftRef.current);
 
-    // Check if we need to fetch more data
     const newWindow = computeFetchWindow(state, fetchWindowRef.current, overscan);
     if (newWindow) {
       fetchWindowRef.current = newWindow;
       data.setWindow(newWindow.offset, newWindow.limit);
     }
-
-    // Evict rows outside retention window
-    const retention = computeRetentionRange(state);
-    // Eviction is handled by the data model internally
   }, [rowHeight, totalRows, overscan, data, getViewportHeight, getViewportWidth]);
 
-  // Wheel handler
-  const onWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault();
+  // Ref that always points to the latest wheel handler closure.
+  // Updated on every render so it captures current totalHeight, totalWidth, etc.
+  const handleWheelRef = useRef<(e: WheelEvent) => void>(() => {});
+  handleWheelRef.current = (e: WheelEvent) => {
+    e.preventDefault();
 
-      const maxScrollTop = Math.max(0, totalHeight - getViewportHeight());
-      const maxScrollLeft = Math.max(0, totalWidth - getViewportWidth());
+    const maxScrollTop = Math.max(0, totalHeight - getViewportHeight());
+    const maxScrollLeft = Math.max(0, totalWidth - getViewportWidth());
 
-      scrollTopRef.current = Math.max(
-        0,
-        Math.min(maxScrollTop, scrollTopRef.current + e.deltaY),
-      );
-      scrollLeftRef.current = Math.max(
-        0,
-        Math.min(maxScrollLeft, scrollLeftRef.current + e.deltaX),
-      );
+    scrollTopRef.current = Math.max(
+      0,
+      Math.min(maxScrollTop, scrollTopRef.current + e.deltaY),
+    );
+    scrollLeftRef.current = Math.max(
+      0,
+      Math.min(maxScrollLeft, scrollLeftRef.current + e.deltaX),
+    );
 
-      if (rafIdRef.current == null) {
-        rafIdRef.current = requestAnimationFrame(updateScroll);
-      }
-    },
-    [totalHeight, totalWidth, getViewportHeight, getViewportWidth, updateScroll],
-  );
+    if (rafIdRef.current == null) {
+      rafIdRef.current = requestAnimationFrame(updateScroll);
+    }
+  };
 
-  // Trigger initial fetch when data/layout is ready
+  // Stable per-instance handler created once — delegates to handleWheelRef
+  // so the DOM listener never needs to be re-attached.
+  const stableHandlerRef = useRef<(e: WheelEvent) => void>();
+  if (!stableHandlerRef.current) {
+    stableHandlerRef.current = (e: WheelEvent) => {
+      handleWheelRef.current(e);
+    };
+  }
+
+  // Ref callback to capture the viewport element and attach the wheel listener
+  // imperatively with { passive: false } so preventDefault works.
+  const viewportRef = useCallback((el: HTMLElement | null) => {
+    const handler = stableHandlerRef.current!;
+    if (viewportElRef.current) {
+      viewportElRef.current.removeEventListener('wheel', handler);
+    }
+    viewportElRef.current = el;
+    if (el) {
+      el.addEventListener('wheel', handler, { passive: false });
+    }
+  }, []);
+
+  // Trigger initial fetch when data becomes available
   useEffect(() => {
     if (rowHeight > 0 && totalRows > 0) {
       updateScroll();
     }
   }, [rowHeight, totalRows, updateScroll]);
 
-  // Trigger initial fetch on mount
-  useEffect(() => {
-    if (rowHeight > 0 && getViewportHeight() > 0 && !fetchWindowRef.current) {
-      const viewportHeight = getViewportHeight();
-      const viewportRows = Math.ceil(viewportHeight / rowHeight);
-      const limit = viewportRows * 3;
-      fetchWindowRef.current = { offset: 0, limit };
-      data.setWindow(0, limit);
-    }
-  }, [rowHeight, data, getViewportHeight]);
-
-  // Cleanup rAF on unmount
+  // Cleanup rAF and wheel listener on unmount
   useEffect(() => {
     return () => {
       if (rafIdRef.current != null) {
         cancelAnimationFrame(rafIdRef.current);
+      }
+      const handler = stableHandlerRef.current;
+      if (viewportElRef.current && handler) {
+        viewportElRef.current.removeEventListener('wheel', handler);
       }
     };
   }, []);
@@ -161,7 +166,7 @@ export function useTableScroll(options: UseTableScrollOptions): TableScroll {
     scrollTop,
     scrollLeft,
     visibleRowRange,
-    onWheel: onWheel as any,
+    viewportRef,
     scrollContainerStyle,
     scrollToRow,
     scrollToTop,

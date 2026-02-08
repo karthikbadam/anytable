@@ -1,4 +1,11 @@
-// CountClient — Mosaic client that fetches total row count.
+import type {
+  ClientConstructor,
+  QueryStatic,
+  QueryResult,
+  SelectionLike,
+  SqlExpr,
+  CountClientInstance,
+} from '../types/mosaic';
 
 export interface CountClientConfig {
   tableName: string;
@@ -6,25 +13,28 @@ export interface CountClientConfig {
 }
 
 export function createCountClient(
-  MosaicClient: any,
-  Query: any,
-  countFn: () => any,
+  MosaicClient: ClientConstructor,
+  Query: QueryStatic,
+  countFn: () => SqlExpr,
   config: CountClientConfig,
-  filterSelection?: any,
-): any {
-  const client = new MosaicClient(filterSelection ?? undefined);
+  filterSelection?: SelectionLike,
+): CountClientInstance {
   const tableName = config.tableName;
   const onCountResult = config.onResult;
 
-  client.query = (filter?: any[]) => {
+  // MosaicClient is designed for query/queryResult to be overridden per-client.
+  // We cast once after construction, then assign the required overrides.
+  const client = new MosaicClient(filterSelection) as unknown as CountClientInstance;
+
+  client.query = (filter?: unknown[]) => {
     return Query.from(tableName)
       .select({ count: countFn() })
       .where(filter);
   };
 
-  client.queryResult = (data: any) => {
-    const arr = data.toArray?.() ?? data;
-    const row = Array.isArray(arr) ? arr[0] : arr;
+  client.queryResult = (data: QueryResult) => {
+    const arr = data.toArray();
+    const row = arr[0] as Record<string, unknown> | undefined;
     const count = Number(row?.count ?? 0);
     onCountResult(count);
     return client;

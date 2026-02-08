@@ -6,7 +6,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' run build",
+    "build": "pnpm --filter @anytable/core run build && pnpm --filter @anytable/react run build",
+    "build:demo": "pnpm run build && GITHUB_PAGES=1 pnpm --filter demo build",
+    "deploy": "pnpm run build:demo && npx gh-pages -d apps/demo/dist -b gh-pages",
     "dev": "pnpm --filter demo dev",
     "test": "echo \"No tests yet\""
   },
@@ -14,5 +16,8 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }

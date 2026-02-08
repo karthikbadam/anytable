@@ -1,6 +1,6 @@
 import { type RefObject } from 'react';
-import type { ColumnDef, Sort, RowHeightConfig } from '@anytable/core';
-import { useTableData, type UseTableDataOptions } from './useTableData';
+import type { ColumnDef, Sort, RowHeightConfig, RowRecord, SelectionLike } from '@anytable/core';
+import { useTableData } from './useTableData';
 import { useTableLayout } from './useTableLayout';
 import { useTableScroll } from './useTableScroll';
 import type { TableData } from '../context/DataContext';
@@ -12,10 +12,10 @@ import type { TableScroll } from '../context/ScrollContext';
 export interface UseTableOptions {
   // Data source (required)
   table?: string;
-  rows?: Record<string, any>[];
+  rows?: RowRecord[];
   columns: ColumnDef[];
   rowKey: string;
-  filter?: any;
+  filter?: SelectionLike;
   containerRef: RefObject<HTMLElement | null>;
 
   // Display mode
@@ -29,17 +29,17 @@ export interface UseTableOptions {
   onSortChange?: (sort: Sort | null) => void;
 
   // Post-v0.1 (accepted for forward compat, ignored)
-  selection?: any;
-  pinning?: any;
+  selection?: unknown;
+  pinning?: unknown;
   reorder?: boolean;
   resize?: boolean;
-  expansion?: any;
+  expansion?: unknown;
   groupBy?: string | string[];
-  aggregates?: Record<string, any>;
-  onSelectionChange?: any;
-  onColumnResize?: any;
-  onColumnOrderChange?: any;
-  onPinningChange?: any;
+  aggregates?: Record<string, unknown>;
+  onSelectionChange?: unknown;
+  onColumnResize?: unknown;
+  onColumnOrderChange?: unknown;
+  onPinningChange?: unknown;
 }
 
 // ── Return types ─────────────────────────────────────────────────

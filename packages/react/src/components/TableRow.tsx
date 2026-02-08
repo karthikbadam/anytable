@@ -1,11 +1,10 @@
 import React from 'react';
 import { useLayoutContext } from '../context/LayoutContext';
-import { useDataContext } from '../context/DataContext';
 import type { VisibleRow } from './TableViewport';
 
 export interface VisibleCell {
   column: string;
-  value: any;
+  value: unknown;
   width: number;
   offset: number;
 }
@@ -19,7 +18,6 @@ export interface TableRowProps {
 
 export function TableRow({ row, children, className, style }: TableRowProps) {
   const layout = useLayoutContext();
-  const data = useDataContext();
 
   const cells: VisibleCell[] = layout.resolved.map((col) => ({
     column: col.key,

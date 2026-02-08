@@ -1,24 +1,24 @@
 import type { ColumnSchema, BigIntValue } from './interfaces';
 
 export function parseValue(
-  raw: any,
+  raw: unknown,
   schema: ColumnSchema,
-): any {
+): unknown {
   if (raw == null) return null;
 
   switch (schema.typeCategory) {
     case 'numeric': {
       const t = schema.sqlType.toUpperCase();
       if (t === 'BIGINT' || t === 'HUGEINT' || t === 'UBIGINT') {
-        return { display: String(raw), sortValue: BigInt(raw) } satisfies BigIntValue;
+        return { display: String(raw), sortValue: BigInt(raw as string | number | bigint) } satisfies BigIntValue;
       }
       return raw;
     }
 
     case 'temporal': {
       const t = schema.sqlType.toUpperCase();
-      if (t === 'DATE') return new Date(raw);
-      if (t.startsWith('TIMESTAMP')) return new Date(raw);
+      if (t === 'DATE') return new Date(raw as string | number);
+      if (t.startsWith('TIMESTAMP')) return new Date(raw as string | number);
       // INTERVAL, TIME arrive as strings from the cast
       return raw;
     }

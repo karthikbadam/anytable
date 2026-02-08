@@ -11,11 +11,11 @@ export interface TableRootProps {
   scroll?: TableScroll | null;
   columns: ColumnDef[];
   // Post-v0.1 props (accepted, unused)
-  pagination?: any;
-  selection?: any;
-  pinning?: any;
-  expansion?: any;
-  grouping?: any;
+  pagination?: unknown;
+  selection?: unknown;
+  pinning?: unknown;
+  expansion?: unknown;
+  grouping?: unknown;
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

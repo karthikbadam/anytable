@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react';
-import type { ColumnSchema, Sort } from '@anytable/core';
+import type { ColumnSchema, Sort, RowRecord } from '@anytable/core';
 
 export interface TableData {
-  getRow(index: number): Record<string, any> | null;
+  getRow(index: number): RowRecord | null;
   hasRow(index: number): boolean;
   totalRows: number;
   schema: ColumnSchema[];

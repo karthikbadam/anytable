@@ -1,5 +1,7 @@
+import type { RowRecord } from '../types/mosaic';
+
 export class SparseDataModel {
-  private rows = new Map<number, Record<string, any>>();
+  private rows = new Map<number, RowRecord>();
   private _totalRows = 0;
 
   get totalRows(): number {
@@ -14,13 +16,13 @@ export class SparseDataModel {
     return this._totalRows;
   }
 
-  mergeRows(startIndex: number, rows: Record<string, any>[]): void {
+  mergeRows(startIndex: number, rows: RowRecord[]): void {
     for (let i = 0; i < rows.length; i++) {
       this.rows.set(startIndex + i, rows[i]);
     }
   }
 
-  getRow(index: number): Record<string, any> | null {
+  getRow(index: number): RowRecord | null {
     return this.rows.get(index) ?? null;
   }
 

@@ -5,7 +5,8 @@ export interface TableScroll {
   scrollTop: number;
   scrollLeft: number;
   visibleRowRange: { start: number; end: number };
-  onWheel: (e: React.WheelEvent) => void;
+  /** Ref callback — attach to the viewport DOM element for wheel handling. */
+  viewportRef: (el: HTMLElement | null) => void;
   scrollContainerStyle: CSSProperties;
   scrollToRow(index: number): void;
   scrollToTop(): void;

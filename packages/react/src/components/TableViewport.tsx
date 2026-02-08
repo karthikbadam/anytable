@@ -2,12 +2,13 @@ import React from 'react';
 import { useDataContext } from '../context/DataContext';
 import { useLayoutContext } from '../context/LayoutContext';
 import { useScrollContext } from '../context/ScrollContext';
-import { getTotalHeight, computeRenderRange } from '@anytable/core';
+import { getTotalHeight } from '@anytable/core';
+import type { RowRecord } from '@anytable/core';
 
 export interface VisibleRow {
   key: string | number;
   index: number;
-  data: Record<string, any> | null;
+  data: RowRecord | null;
   top: number;
 }
 
@@ -31,7 +32,6 @@ export function TableViewport({ children, className, style }: TableViewportProps
 
   if (scroll && rowHeight > 0) {
     const { start, end } = scroll.visibleRowRange;
-    // Add overscan
     const renderStart = Math.max(0, start - 5);
     const renderEnd = Math.min(totalRows, end + 5);
 
@@ -44,7 +44,6 @@ export function TableViewport({ children, className, style }: TableViewportProps
       });
     }
   } else if (!scroll) {
-    // Non-scroll mode (pagination or full render)
     const limit = Math.min(totalRows, 100);
     for (let i = 0; i < limit; i++) {
       rows.push({
@@ -58,9 +57,9 @@ export function TableViewport({ children, className, style }: TableViewportProps
 
   return (
     <div
+      ref={scroll?.viewportRef}
       role="rowgroup"
       className={className}
-      onWheel={scroll?.onWheel}
       style={{
         flex: 1,
         overflow: 'hidden',

@@ -4,20 +4,25 @@ import {
   fetchSchema,
   createCountClient,
   createRowsClient,
-  categorizeType,
   type ColumnSchema,
   type Sort,
   type SortField,
+  type RowRecord,
+  type RowsClientInstance,
+  type CountClientInstance,
+  type SelectionLike,
+  type CoordinatorLike,
+  type QueryFieldInfoFn,
 } from '@anytable/core';
 import { useMosaicCoordinator } from '../context/MosaicContext';
 import type { TableData } from '../context/DataContext';
 
 export interface UseTableDataOptions {
   table?: string;
-  rows?: Record<string, any>[];
+  rows?: RowRecord[];
   columns: string[];
   rowKey: string;
-  filter?: any;
+  filter?: SelectionLike;
 }
 
 export function useTableData(options: UseTableDataOptions): TableData {
@@ -30,8 +35,10 @@ export function useTableData(options: UseTableDataOptions): TableData {
   const [sort, setSortState] = useState<Sort | null>(null);
 
   const modelRef = useRef(new SparseDataModel());
-  const rowsClientRef = useRef<any>(null);
-  const countClientRef = useRef<any>(null);
+  const rowsClientRef = useRef<RowsClientInstance | null>(null);
+  const countClientRef = useRef<CountClientInstance | null>(null);
+  // Guard: setWindow is a no-op until clients are connected to the coordinator
+  const connectedRef = useRef(false);
 
   // ── Array mode ──
   const isArrayMode = arrayRows != null;
@@ -39,7 +46,6 @@ export function useTableData(options: UseTableDataOptions): TableData {
   useEffect(() => {
     if (!isArrayMode) return;
 
-    // Infer schema from column names — treat everything as text for array mode
     const inferredSchema: ColumnSchema[] = columns.map((name) => ({
       name,
       sqlType: 'VARCHAR',
@@ -60,11 +66,11 @@ export function useTableData(options: UseTableDataOptions): TableData {
     if (isArrayMode || !table || !coordinator) return;
 
     let cancelled = false;
+    connectedRef.current = false;
     setIsLoading(true);
 
     async function init() {
       try {
-        // Dynamically import mosaic packages
         const [mosaicCore, mosaicSql] = await Promise.all([
           import('@uwdata/mosaic-core'),
           import('@uwdata/mosaic-sql'),
@@ -75,16 +81,14 @@ export function useTableData(options: UseTableDataOptions): TableData {
         const { MosaicClient, queryFieldInfo } = mosaicCore;
         const { Query, column, cast, row_number, desc, count } = mosaicSql;
 
-        // 1. Fetch schema
         const schemaResult = await fetchSchema(
-          coordinator,
+          coordinator as CoordinatorLike,
           table!,
-          queryFieldInfo,
+          queryFieldInfo as unknown as QueryFieldInfoFn,
         );
 
         if (cancelled) return;
 
-        // Filter schema to only requested columns
         const filteredSchema = columns.length > 0
           ? schemaResult.filter((s) => columns.includes(s.name))
           : schemaResult;
@@ -94,7 +98,6 @@ export function useTableData(options: UseTableDataOptions): TableData {
         const model = modelRef.current;
         model.clear();
 
-        // 2. Create CountClient
         const countClient = createCountClient(
           MosaicClient,
           Query,
@@ -110,14 +113,13 @@ export function useTableData(options: UseTableDataOptions): TableData {
         );
         countClientRef.current = countClient;
 
-        // 3. Create RowsClient
         const rowsClient = createRowsClient(
           MosaicClient,
           { Query, column, cast, row_number, desc },
           {
             tableName: table!,
             columns: filteredSchema,
-            onResult: (rows: Record<string, any>[], offset: number) => {
+            onResult: (rows: RowRecord[], offset: number) => {
               model.mergeRows(offset, rows);
               setIsLoading(false);
               setVersion((v) => v + 1);
@@ -127,9 +129,12 @@ export function useTableData(options: UseTableDataOptions): TableData {
         );
         rowsClientRef.current = rowsClient;
 
-        // 4. Connect clients to coordinator
         await coordinator.connect(countClient);
         await coordinator.connect(rowsClient);
+
+        if (!cancelled) {
+          connectedRef.current = true;
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('[anytable] Failed to initialize data:', err);
@@ -142,6 +147,7 @@ export function useTableData(options: UseTableDataOptions): TableData {
 
     return () => {
       cancelled = true;
+      connectedRef.current = false;
       if (rowsClientRef.current && coordinator) {
         coordinator.disconnect(rowsClientRef.current);
       }
@@ -157,7 +163,6 @@ export function useTableData(options: UseTableDataOptions): TableData {
       setSortState(newSort);
 
       if (isArrayMode) {
-        // Client-side sort for array mode
         if (!arrayRows) return;
         const model = modelRef.current;
         model.clear();
@@ -171,8 +176,8 @@ export function useTableData(options: UseTableDataOptions): TableData {
             for (const field of fields) {
               const aVal = a[field.column];
               const bVal = b[field.column];
-              if (aVal < bVal) return field.desc ? 1 : -1;
-              if (aVal > bVal) return field.desc ? -1 : 1;
+              if (aVal != null && bVal != null && aVal < bVal) return field.desc ? 1 : -1;
+              if (aVal != null && bVal != null && aVal > bVal) return field.desc ? -1 : 1;
             }
             return 0;
           });
@@ -182,9 +187,8 @@ export function useTableData(options: UseTableDataOptions): TableData {
         model.mergeRows(0, sorted);
         setVersion((v) => v + 1);
       } else {
-        // Mosaic mode: update sort on the rows client and re-fetch
         const client = rowsClientRef.current;
-        if (client) {
+        if (client && connectedRef.current) {
           client.sort = newSort;
           modelRef.current.clear();
           setVersion((v) => v + 1);
@@ -197,7 +201,7 @@ export function useTableData(options: UseTableDataOptions): TableData {
 
   const setWindow = useCallback((offset: number, limit: number) => {
     const client = rowsClientRef.current;
-    if (client?.fetchWindow) {
+    if (client && connectedRef.current) {
       client.fetchWindow(offset, limit);
     }
   }, []);

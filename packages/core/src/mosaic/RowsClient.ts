@@ -1,21 +1,20 @@
-// RowsClient — Mosaic client that fetches windowed row slices.
-
 import type { ColumnSchema, SortField, Sort } from '../types/interfaces';
+import type {
+  ClientConstructor,
+  QueryResult,
+  SelectionLike,
+  SqlExpr,
+  MosaicSqlApi,
+  RowsClientInstance,
+  RowRecord,
+} from '../types/mosaic';
 import { getCastDescriptor } from '../types/casting';
 import { parseValue } from '../types/parsing';
 
 export interface RowsClientConfig {
   tableName: string;
   columns: ColumnSchema[];
-  onResult: (rows: Record<string, any>[], offset: number) => void;
-}
-
-interface MosaicSqlFns {
-  Query: any;
-  column: (name: string) => any;
-  cast: (expr: any, type: string) => any;
-  row_number: () => any;
-  desc: (expr: any) => any;
+  onResult: (rows: RowRecord[], offset: number) => void;
 }
 
 function normalizeSortFields(sort: Sort | null): SortField[] | null {
@@ -24,31 +23,34 @@ function normalizeSortFields(sort: Sort | null): SortField[] | null {
 }
 
 export function createRowsClient(
-  MosaicClient: any,
-  sqlFns: MosaicSqlFns,
+  MosaicClient: ClientConstructor,
+  sqlApi: MosaicSqlApi,
   config: RowsClientConfig,
-  filterSelection?: any,
-): any {
-  const { Query, column, cast, row_number, desc } = sqlFns;
+  filterSelection?: SelectionLike,
+): RowsClientInstance {
+  const { Query, column, cast, row_number, desc } = sqlApi;
   const schemaMap = new Map<string, ColumnSchema>();
   for (const s of config.columns) {
     schemaMap.set(s.name, s);
   }
 
-  const client = new MosaicClient(filterSelection ?? undefined);
-
   let currentSort: Sort | null = null;
   let currentOffset = 0;
   let currentLimit = 100;
+
+  // MosaicClient is designed for query/queryResult to be overridden per-client.
+  // We cast once after construction, then assign the required overrides.
+  const client = new MosaicClient(filterSelection) as unknown as RowsClientInstance;
 
   Object.defineProperty(client, 'sort', {
     get: () => currentSort,
     set: (value: Sort | null) => { currentSort = value; },
     enumerable: true,
+    configurable: true,
   });
 
-  client.query = (filter?: any[]) => {
-    const select: Record<string, any> = {};
+  client.query = (filter?: unknown[]) => {
+    const select: Record<string, SqlExpr> = {};
 
     for (const col of config.columns) {
       const descriptor = getCastDescriptor(col);
@@ -61,12 +63,12 @@ export function createRowsClient(
 
     // Stable positional ID via window function
     const sortFields = normalizeSortFields(currentSort);
-    let rn = row_number();
+    let rn: SqlExpr = row_number();
     if (sortFields && sortFields.length > 0) {
       const orderExprs = sortFields.map((sf) =>
         sf.desc ? desc(column(sf.column)) : column(sf.column),
       );
-      rn = rn.orderby(...orderExprs);
+      rn = row_number().orderby(...orderExprs);
     }
     select['__oid'] = rn;
 
@@ -85,16 +87,17 @@ export function createRowsClient(
     return q.limit(currentLimit).offset(currentOffset);
   };
 
-  client.queryResult = (data: any) => {
-    const rawArr = data.toArray?.() ?? data;
-    const rows: Record<string, any>[] = [];
+  client.queryResult = (data: QueryResult) => {
+    const rawArr = data.toArray();
+    const rows: RowRecord[] = [];
 
     for (const rawRow of rawArr) {
-      const parsed: Record<string, any> = {};
+      const parsed: RowRecord = {};
+      const record = rawRow as Record<string, unknown>;
       for (const col of config.columns) {
-        parsed[col.name] = parseValue(rawRow[col.name], col);
+        parsed[col.name] = parseValue(record[col.name], col);
       }
-      parsed['__oid'] = Number(rawRow['__oid']);
+      parsed['__oid'] = Number(record['__oid']);
       rows.push(parsed);
     }
 

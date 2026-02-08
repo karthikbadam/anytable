@@ -2,6 +2,18 @@
 
 A headless, virtualized React table for large datasets.
 
+## Try the Demo
+
+**[Live demo](https://karthikbadam.github.io/anytable/)** — 11K rows from the Open Rubrics dataset, loaded into DuckDB-WASM and rendered with anytable. Click column headers to sort.
+
+Or run it locally:
+
+```bash
+pnpm install
+pnpm build
+pnpm dev
+```
+
 ## Philosophy
 
 **Composable, not configurable.** No boolean flags. Behaviors are opt-in by using the relevant hook or component.
@@ -72,14 +84,6 @@ function MyTable() {
 }
 ```
 
-## Development
-
-```bash
-pnpm install
-pnpm build
-pnpm dev     # launches demo app
-```
-
 ## Architecture
 
 Two-tier hook system:
@@ -92,3 +96,13 @@ Override any piece by spreading `rootProps` and replacing:
 ```tsx
 <Table.Root {...table.rootProps} selection={customSelection}>
 ```
+
+## Deploy
+
+```bash
+pnpm deploy    # builds packages + demo, pushes to gh-pages branch
+```
+
+## License
+
+MIT
