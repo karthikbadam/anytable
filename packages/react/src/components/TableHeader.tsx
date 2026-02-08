@@ -22,6 +22,8 @@ export function TableHeader({ children, className, style }: TableHeaderProps) {
         position: 'sticky',
         top: 0,
         zIndex: 2,
+        overflow: 'hidden',
+        width: '100%',
         ...style,
       }}
     >
