@@ -35,16 +35,16 @@ const pill: React.CSSProperties = {
   gap: 6,
   padding: "4px 10px",
   borderRadius: 4,
-  background: "#f3f4f6",
+  background: "var(--surface-2)",
   fontSize: "0.7rem",
   fontFamily: "SF Mono, Menlo, monospace",
-  color: "#555",
+  color: "var(--muted-fg)",
   whiteSpace: "nowrap",
 };
 
 const label: React.CSSProperties = {
   fontWeight: 600,
-  color: "#999",
+  color: "var(--muted-fg)",
   textTransform: "uppercase",
   fontSize: "0.6rem",
   letterSpacing: "0.03em",
@@ -76,8 +76,18 @@ function StatsBar({ table }: { table: UseTableReturn }) {
       <span
         style={{
           ...pill,
-          background: fps >= 55 ? "#dcfce7" : fps >= 30 ? "#fef9c3" : "#fee2e2",
-          color: fps >= 55 ? "#166534" : fps >= 30 ? "#854d0e" : "#991b1b",
+          background:
+            fps >= 55
+              ? "var(--good-bg)"
+              : fps >= 30
+                ? "var(--warn-bg)"
+                : "var(--bad-bg)",
+          color:
+            fps >= 55
+              ? "var(--good-fg)"
+              : fps >= 30
+                ? "var(--warn-fg)"
+                : "var(--bad-fg)",
         }}
       >
         <span style={{ ...label, color: "inherit", opacity: 0.6 }}>fps</span>{" "}
@@ -113,17 +123,20 @@ function RubricsTable() {
         ref={containerRef}
         style={{
           width: "100%",
-          height: "calc(100vh - 120px)",
+          height: "calc(100dvh - 120px)",
           position: "relative",
-          border: "1px solid #ddd",
+          border: "1px solid var(--border)",
           borderRadius: 6,
           overflow: "hidden",
+          background: "var(--surface)",
         }}
       >
         <Table.Root {...table.rootProps}>
           <Table.Header
             style={{
               padding: "8px",
+              background: "var(--surface)",
+              borderBottom: "1px solid var(--border)",
             }}
           >
             {({ columns: cols }) =>
@@ -136,7 +149,7 @@ function RubricsTable() {
                     fontSize: "0.75rem",
                     textTransform: "uppercase",
                     letterSpacing: "0.04em",
-                    color: "#555",
+                    color: "var(--muted-fg)",
                   }}
                 >
                   <Table.SortTrigger column={col.key}>
@@ -153,8 +166,9 @@ function RubricsTable() {
                   key={row.key}
                   row={row}
                   style={{
-                    borderBottom: "1px solid #eee",
-                    background: row.index % 2 === 0 ? "#fff" : "#fafafa",
+                    borderBottom: "1px solid var(--border)",
+                    background:
+                      row.index % 2 === 0 ? "var(--surface)" : "var(--surface-2)",
                   }}
                 >
                   {({ cells }) =>
@@ -168,7 +182,7 @@ function RubricsTable() {
                           padding: "8px 12px",
                           fontSize: "0.8rem",
                           lineHeight: "1.5",
-                          color: "#333",
+                          color: "var(--fg)",
                         }}
                       >
                         {renderCell(cell.value, cell.column)}
@@ -191,7 +205,8 @@ function renderCell(value: unknown, column: string): React.ReactNode {
   const str = String(value);
 
   if (column === "winner") {
-    const color = str === "A" ? "#2563eb" : str === "B" ? "#dc2626" : "#6b7280";
+    const color =
+      str === "A" ? "var(--accent)" : str === "B" ? "var(--bad-fg)" : "var(--muted-fg)";
     return <span style={{ fontWeight: 600, color }}>{str}</span>;
   }
 
