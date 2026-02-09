@@ -49,7 +49,9 @@ export function TableRoot({
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                height: '100%',
+                height: scroll ? 'auto' : '100%',
+                minHeight: '100%',
+                width: scroll ? layout.totalWidth : '2%',
                 ...style,
               }}
             >

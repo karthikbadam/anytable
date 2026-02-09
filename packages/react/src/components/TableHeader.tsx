@@ -23,7 +23,7 @@ export function TableHeader({ children, className, style }: TableHeaderProps) {
         top: 0,
         zIndex: 2,
         overflow: 'hidden',
-        width: '100%',
+        width: layout.totalWidth,
         ...style,
       }}
     >

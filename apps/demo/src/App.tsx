@@ -195,8 +195,8 @@ function RubricsTable() {
               ))
             }
           </Table.Viewport>
-          <Table.VerticalScrollbar />
-          <Table.HorizontalScrollbar />
+          {/* <Table.VerticalScrollbar />
+          <Table.HorizontalScrollbar /> */}
         </Table.Root>
       </div>
     </>

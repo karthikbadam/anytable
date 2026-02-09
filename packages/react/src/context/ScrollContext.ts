@@ -5,7 +5,7 @@ export interface TableScroll {
   scrollTop: number;
   scrollLeft: number;
   visibleRowRange: { start: number; end: number };
-  /** Ref callback — attach to the viewport DOM element for wheel handling. */
+  /** Ref callback — attach to the viewport DOM element for layout measurements. */
   viewportRef: (el: HTMLElement | null) => void;
   scrollContainerStyle: CSSProperties;
   scrollToRow(index: number): void;
