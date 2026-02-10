@@ -21,6 +21,18 @@
   --warn-fg: #854d0e;
   --bad-bg: #fee2e2;
   --bad-fg: #991b1b;
+
+  /* JSON syntax colors */
+  --json-key: #0a66d1;
+  --json-string: #16743a;
+  --json-number: #b45309;
+  --json-boolean: #7c3aed;
+  --json-null: #6b7280;
+  --json-punctuation: #6b7280;
+
+  /* Selection */
+  --selected-bg: #e0edff;
+  --selected-border: #0a66d1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,6 +52,18 @@
     --warn-fg: #f3d26f;
     --bad-bg: #421919;
     --bad-fg: #f5a2a2;
+
+    /* JSON syntax colors (dark) */
+    --json-key: #7db7ff;
+    --json-string: #81d6a6;
+    --json-number: #f3d26f;
+    --json-boolean: #c4b5fd;
+    --json-null: #6b7280;
+    --json-punctuation: #9aa8bb;
+
+    /* Selection (dark) */
+    --selected-bg: #2a1f4e;
+    --selected-border: #a78bfa;
   }
 }
 
@@ -66,4 +90,38 @@ body {
 
 [role="columnheader"] button:hover {
   color: var(--accent);
+}
+
+/* JSON syntax highlighting */
+.json-key {
+  color: var(--json-key);
+  font-weight: 600;
+}
+
+.json-string {
+  color: var(--json-string);
+}
+
+.json-number {
+  color: var(--json-number);
+}
+
+.json-boolean {
+  color: var(--json-boolean);
+}
+
+.json-null {
+  color: var(--json-null);
+  font-style: italic;
+}
+
+.json-punctuation {
+  color: var(--json-punctuation);
+}
+
+/* Selected row */
+.at-row-selected {
+  background: var(--selected-bg) !important;
+  outline: 1px solid var(--selected-border);
+  outline-offset: -1px;
 }

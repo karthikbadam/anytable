@@ -1,5 +1,5 @@
 import type { ColumnDef, Coordinator, UseTableReturn } from "@any_table/react";
-import { MosaicProvider, Table, useTable } from "@any_table/react";
+import { MosaicProvider, Table, useTable, JsonCell, TextCell, NumberCell } from "@any_table/react";
 import React, { useEffect, useRef, useState } from "react";
 import { setupMosaic } from "./setup-mosaic";
 
@@ -52,8 +52,9 @@ const label: React.CSSProperties = {
 
 function StatsBar({ table }: { table: UseTableReturn }) {
   const fps = useFps();
-  const { data, layout, scroll } = table;
+  const { data, layout, scroll, selection } = table;
   const range = scroll?.visibleRowRange;
+  const selectedCount = selection?.selected.size ?? 0;
 
   return (
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
@@ -73,6 +74,18 @@ function StatsBar({ table }: { table: UseTableReturn }) {
       <span style={pill}>
         <span style={label}>loaded</span> {data.isLoading ? "..." : "yes"}
       </span>
+      {selection && (
+        <span
+          style={{
+            ...pill,
+            background: selectedCount > 0 ? "var(--selected-bg)" : "var(--surface-2)",
+            color: selectedCount > 0 ? "var(--selected-border)" : "var(--muted-fg)",
+          }}
+        >
+          <span style={{ ...label, color: "inherit", opacity: 0.6 }}>selected</span>{" "}
+          {selectedCount}
+        </span>
+      )}
       <span
         style={{
           ...pill,
@@ -97,7 +110,9 @@ function StatsBar({ table }: { table: UseTableReturn }) {
   );
 }
 
-const columns: ColumnDef[] = [
+// ── Rubrics Table ─────────────────────────────────────────────
+
+const rubricColumns: ColumnDef[] = [
   { key: "source", width: "8rem" },
   { key: "winner", width: "4rem" },
   { key: "instruction", flex: 3, minWidth: "12rem" },
@@ -111,9 +126,11 @@ function RubricsTable() {
 
   const table = useTable({
     table: "open_rubrics",
-    columns,
+    columns: rubricColumns,
     rowKey: "instruction",
     containerRef,
+    expansion: true,
+    selection: true,
   });
 
   return (
@@ -123,12 +140,11 @@ function RubricsTable() {
         ref={containerRef}
         style={{
           width: "100%",
-          height: "calc(100dvh - 150px)",
+          height: "calc(100dvh - 200px)",
           position: "relative",
           border: "1px solid var(--border)",
           borderRadius: 6,
           background: "var(--surface)",
-          margin: "1rem 0",
         }}
       >
         <Table.Root {...table.rootProps}>
@@ -187,7 +203,7 @@ function RubricsTable() {
                           color: "var(--fg)",
                         }}
                       >
-                        {renderCell(cell.value, cell.column)}
+                        {renderRubricCell(cell.value, cell.column, cell.isExpanded, cell.onToggleExpand)}
                       </Table.Cell>
                     ))
                   }
@@ -201,7 +217,12 @@ function RubricsTable() {
   );
 }
 
-function renderCell(value: unknown, column: string): React.ReactNode {
+function renderRubricCell(
+  value: unknown,
+  column: string,
+  isExpanded: boolean,
+  onToggleExpand?: () => void,
+): React.ReactNode {
   if (value == null) return "";
   const str = String(value);
 
@@ -215,29 +236,202 @@ function renderCell(value: unknown, column: string): React.ReactNode {
     return <span style={{ fontWeight: 600, color }}>{str}</span>;
   }
 
+  // Long text columns get expansion support
+  if (["instruction", "response_a", "response_b", "rubric"].includes(column)) {
+    return (
+      <TextCell
+        value={value}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+      />
+    );
+  }
+
   return str;
 }
+
+// ── Traces Table ──────────────────────────────────────────────
+
+const tracesColumns: ColumnDef[] = [
+  { key: "id", width: "3rem" },
+  { key: "trace_id", width: "8rem" },
+  { key: "task", flex: 2, minWidth: "10rem" },
+  { key: "duration", width: "6rem" },
+  { key: "status", width: "4rem" },
+  { key: "score", width: "4rem" },
+  { key: "reliability_notes", flex: 2, minWidth: "10rem" },
+  { key: "trace_json", flex: 3, minWidth: "14rem" },
+  { key: "labels_json", flex: 3, minWidth: "14rem" },
+];
+
+function TracesTable() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const table = useTable({
+    table: "swe_bench",
+    columns: tracesColumns,
+    rowKey: "id",
+    containerRef,
+    expansion: { expandedRowHeight: 300 },
+    selection: true,
+  });
+
+  return (
+    <>
+      <StatsBar table={table} />
+      <div
+        ref={containerRef}
+        style={{
+          width: "100%",
+          height: "calc(100dvh - 200px)",
+          position: "relative",
+          border: "1px solid var(--border)",
+          borderRadius: 6,
+          background: "var(--surface)",
+        }}
+      >
+        <Table.Root {...table.rootProps}>
+          <Table.Header
+            style={{
+              padding: "8px",
+              background: "var(--surface)",
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
+            {({ columns: cols }) =>
+              cols.map((col) => (
+                <Table.HeaderCell
+                  key={col.key}
+                  column={col.key}
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "0.75rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    color: "var(--muted-fg)",
+                  }}
+                >
+                  <Table.SortTrigger column={col.key}>
+                    {col.key.replace(/_/g, " ")}
+                  </Table.SortTrigger>
+                </Table.HeaderCell>
+              ))
+            }
+          </Table.Header>
+          <Table.Viewport>
+            {({ rows }) =>
+              rows.map((row) => (
+                <Table.Row
+                  key={row.key}
+                  row={row}
+                  style={{
+                    borderBottom: "1px solid var(--border)",
+                    background:
+                      row.index % 2 === 0
+                        ? "var(--surface)"
+                        : "var(--surface-2)",
+                  }}
+                >
+                  {({ cells }) =>
+                    cells.map((cell) => (
+                      <Table.Cell
+                        key={cell.column}
+                        column={cell.column}
+                        width={cell.width}
+                        offset={cell.offset}
+                        style={{
+                          padding: "8px 12px",
+                          fontSize: "0.8rem",
+                          lineHeight: "1.5",
+                          color: "var(--fg)",
+                        }}
+                      >
+                        {renderTraceCell(cell.value, cell.column, cell.isExpanded, cell.onToggleExpand)}
+                      </Table.Cell>
+                    ))
+                  }
+                </Table.Row>
+              ))
+            }
+          </Table.Viewport>
+        </Table.Root>
+      </div>
+    </>
+  );
+}
+
+function renderTraceCell(
+  value: unknown,
+  column: string,
+  isExpanded: boolean,
+  onToggleExpand?: () => void,
+): React.ReactNode {
+  if (value == null) return "";
+
+  // JSON columns
+  if (column === "trace_json" || column === "labels_json") {
+    return (
+      <JsonCell
+        value={value}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+      />
+    );
+  }
+
+  // Numeric columns
+  if (column === "score" || column === "id") {
+    return <NumberCell value={value} />;
+  }
+
+  // Long text columns
+  if (column === "reliability_notes" || column === "task") {
+    return (
+      <TextCell
+        value={value}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+      />
+    );
+  }
+
+  // Short text
+  return (
+    <TextCell value={value} />
+  );
+}
+
+// ── Tab Bar ───────────────────────────────────────────────────
+
+type Tab = "rubrics" | "traces";
+
+const tabStyle = (active: boolean): React.CSSProperties => ({
+  padding: "6px 16px",
+  borderRadius: 4,
+  border: "none",
+  background: active ? "var(--accent)" : "transparent",
+  color: active ? "#fff" : "var(--muted-fg)",
+  cursor: "pointer",
+  fontSize: "0.8rem",
+  fontWeight: 600,
+  letterSpacing: "0.02em",
+});
+
+// ── App ───────────────────────────────────────────────────────
 
 export default function App() {
   const [setup, setSetup] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const coordinatorRef = useRef<Coordinator | null>(null);
-  const [rowCount, setCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<Tab>("traces");
 
   useEffect(() => {
-    if (setup) {
-      return;
-    }
+    if (setup) return;
     setSetup(true);
     setupMosaic()
       .then(async (coord) => {
         coordinatorRef.current = coord;
-        const countResult = await coord.query(
-          "SELECT count(*) as cnt FROM open_rubrics",
-        );
-        const count = countResult ? countResult.toArray()[0].cnt : "";
-        setCount(count);
         setReady(true);
       })
       .catch((err) => {
@@ -261,7 +455,7 @@ export default function App() {
         <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>
           AnyTable demo
         </h1>
-        <p>Loading open_rubrics.parquet into DuckDB-WASM...</p>
+        <p>Loading datasets into DuckDB-WASM...</p>
       </div>
     );
   }
@@ -269,10 +463,18 @@ export default function App() {
   return (
     <MosaicProvider coordinator={coordinatorRef.current}>
       <div style={{ padding: "1rem" }}>
-        <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>
-          AnyTable • OpenRubric-Science Dataset
-        </h1>
-        <RubricsTable />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <h1 style={{ margin: 0, fontSize: "1.25rem" }}>AnyTable</h1>
+          <div style={{ display: "flex", gap: 4, background: "var(--surface-2)", borderRadius: 6, padding: 2 }}>
+            <button style={tabStyle(activeTab === "rubrics")} onClick={() => setActiveTab("rubrics")}>
+              Rubrics
+            </button>
+            <button style={tabStyle(activeTab === "traces")} onClick={() => setActiveTab("traces")}>
+              Traces
+            </button>
+          </div>
+        </div>
+        {activeTab === "rubrics" ? <RubricsTable /> : <TracesTable />}
       </div>
     </MosaicProvider>
   );
